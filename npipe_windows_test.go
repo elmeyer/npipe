@@ -66,7 +66,7 @@ func TestDialExistingFile(t *testing.T) {
 func TestBadListen(t *testing.T) {
 	addrs := []string{"not a valid pipe address", `\\127.0.0.1\pipe\TestBadListen`}
 	for _, address := range addrs {
-		ln, err := Listen(address)
+		ln, err := Listen(address, pipe_unlimited_instances)
 		if _, ok := err.(PipeError); !ok {
 			t.Errorf("Listening on '%s' did not result in correct error! Expected PipeError, got '%v'",
 				address, err)
@@ -80,13 +80,13 @@ func TestBadListen(t *testing.T) {
 // TestDoubleListen makes sure we can't listen to the same address twice.
 func TestDoubleListen(t *testing.T) {
 	address := `\\.\pipe\TestDoubleListen`
-	ln1, err := Listen(address)
+	ln1, err := Listen(address, pipe_unlimited_instances)
 	if err != nil {
 		t.Fatalf("Listen(%q): %v", address, err)
 	}
 	defer ln1.Close()
 
-	ln2, err := Listen(address)
+	ln2, err := Listen(address, pipe_unlimited_instances)
 	if err == nil {
 		ln2.Close()
 		t.Fatalf("second Listen on %q succeeded.", address)
@@ -98,7 +98,7 @@ func TestDoubleListen(t *testing.T) {
 // pipe on the server side.
 func TestPipeConnected(t *testing.T) {
 	address := `\\.\pipe\TestPipeConnected`
-	ln, err := Listen(address)
+	ln, err := Listen(address, pipe_unlimited_instances)
 	if err != nil {
 		t.Fatalf("Listen(%q): %v", address, err)
 	}
@@ -141,13 +141,13 @@ func TestPipeConnected(t *testing.T) {
 // TestListenCloseListen tests whether Close() actually closes a named pipe properly.
 func TestListenCloseListen(t *testing.T) {
 	address := `\\.\pipe\TestListenCloseListen`
-	ln1, err := Listen(address)
+	ln1, err := Listen(address, pipe_unlimited_instances)
 	if err != nil {
 		t.Fatalf("Listen(%q): %v", address, err)
 	}
 	ln1.Close()
 
-	ln2, err := Listen(address)
+	ln2, err := Listen(address, pipe_unlimited_instances)
 	if err != nil {
 		t.Fatalf("second Listen on %q failed.", address)
 	}
@@ -158,7 +158,7 @@ func TestListenCloseListen(t *testing.T) {
 // calling Close()
 func TestCloseFileHandles(t *testing.T) {
 	address := `\\.\pipe\TestCloseFileHandles`
-	ln, err := Listen(address)
+	ln, err := Listen(address, pipe_unlimited_instances)
 	if err != nil {
 		t.Fatalf("Error listening on %q: %v", address, err)
 	}
@@ -206,7 +206,7 @@ func TestCloseFileHandles(t *testing.T) {
 // TestCancelListen tests whether Accept() can be cancelled by closing the listener.
 func TestCancelAccept(t *testing.T) {
 	address := `\\.\pipe\TestCancelListener`
-	ln, err := Listen(address)
+	ln, err := Listen(address, pipe_unlimited_instances)
 	if err != nil {
 		t.Fatalf("Listen(%q): %v", address, err)
 	}
@@ -282,7 +282,7 @@ func TestReadDeadline(t *testing.T) {
 // listenAndWait simply sets up a pipe listener that does nothing and closes after the waitgroup
 // is done.
 func listenAndWait(address string, wg sync.WaitGroup, t *testing.T) {
-	ln, err := Listen(address)
+	ln, err := Listen(address, pipe_unlimited_instances)
 	if err != nil {
 		t.Fatalf("Error starting to listen on pipe: %v", err)
 	}
@@ -429,7 +429,7 @@ func (s *RPCService) GetResponse(request string, response *string) error {
 // (write while a blocking read is in progress).
 func TestGoRPC(t *testing.T) {
 	address := `\\.\pipe\TestRPC`
-	ln, err := Listen(address)
+	ln, err := Listen(address, pipe_unlimited_instances)
 	if err != nil {
 		t.Fatalf("Error listening on %q: %v", address, err)
 	}
@@ -473,7 +473,7 @@ func TestGoRPC(t *testing.T) {
 
 // listenAndClose is a helper method to just listen on a pipe and close as soon as someone connects.
 func listenAndClose(address string, t *testing.T) {
-	ln, err := Listen(address)
+	ln, err := Listen(address, pipe_unlimited_instances)
 	if err != nil {
 		t.Fatalf("Got unexpected error from Listen: %v", err)
 	}
@@ -497,7 +497,7 @@ func listenAndClose(address string, t *testing.T) {
 func TestCommonUseCase(t *testing.T) {
 	addrs := []string{`\\.\pipe\TestCommonUseCase`, `\\127.0.0.1\pipe\TestCommonUseCase`}
 	// always listen on the . version, since IP won't work for listening
-	ln, err := Listen(addrs[0])
+	ln, err := Listen(addrs[0], pipe_unlimited_instances)
 	if err != nil {
 		t.Fatalf("Listen(%q) failed: %v", addrs[0], err)
 	}

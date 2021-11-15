@@ -31,7 +31,8 @@
 //
 // The Listen function creates servers:
 //
-//   ln, err := npipe.Listen(`\\.\pipe\mypipename`)
+//   maxInstances := 1 // maximum number of concurrently existing pipes with the same name
+//   ln, err := npipe.Listen(`\\.\pipe\mypipename`, maxInstances)
 //   if err != nil {
 //   	// handle error
 //   }

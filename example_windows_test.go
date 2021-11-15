@@ -3,10 +3,9 @@ package npipe_test
 import (
 	"bufio"
 	"fmt"
-	"github.com/keybase/npipe"
 	"net"
 
-	"gopkg.in/natefinch/npipe.v2"
+	"github.com/elmeyer/npipe"
 )
 
 // Use Dial to connect to a server and read messages from it.
@@ -28,7 +27,7 @@ func ExampleDial() {
 
 // Use Listen to start a server, and accept connections with Accept().
 func ExampleListen() {
-	ln, err := npipe.Listen(`\\.\pipe\mypipe`)
+	ln, err := npipe.Listen(`\\.\pipe\mypipe`, 1)
 	if err != nil {
 		// handle error
 	}

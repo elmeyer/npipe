@@ -234,8 +234,8 @@ func dial(address string, timeout uint32) (*PipeConn, error) {
 // address. The address must be of the form \\.\pipe\<name>
 //
 // Listen will return a PipeError for an incorrectly formatted pipe name.
-func Listen(address string) (*PipeListener, error) {
-	handle, err := createPipe(address, true)
+func Listen(address string, maxInstances uint32) (*PipeListener, error) {
+	handle, err := createPipe(address, true, maxInstances)
 	if err == error_invalid_name {
 		return nil, badAddr(address)
 	}
@@ -244,8 +244,9 @@ func Listen(address string) (*PipeListener, error) {
 	}
 
 	return &PipeListener{
-		addr:   PipeAddr(address),
-		handle: handle,
+		addr:         PipeAddr(address),
+		maxInstances: maxInstances,
+		handle:       handle,
 	}, nil
 }
 
@@ -254,9 +255,10 @@ func Listen(address string) (*PipeListener, error) {
 type PipeListener struct {
 	mu sync.Mutex
 
-	addr   PipeAddr
-	handle syscall.Handle
-	closed bool
+	addr         PipeAddr
+	handle       syscall.Handle
+	maxInstances uint32
+	closed       bool
 
 	// acceptHandle contains the current handle waiting for
 	// an incoming connection or nil.
@@ -302,7 +304,7 @@ func (l *PipeListener) AcceptPipe() (*PipeConn, error) {
 	handle := l.handle
 	if handle == 0 {
 		var err error
-		handle, err = createPipe(string(l.addr), false)
+		handle, err = createPipe(string(l.addr), false, l.maxInstances)
 		if err != nil {
 			return nil, err
 		}
@@ -525,7 +527,7 @@ func (a PipeAddr) String() string {
 // with the same arguments, since subsequent calls to create pipe need
 // to use the same arguments as the first one. If first is set, fail
 // if the pipe already exists.
-func createPipe(address string, first bool) (syscall.Handle, error) {
+func createPipe(address string, first bool, maxInstances uint32) (syscall.Handle, error) {
 	n, err := syscall.UTF16PtrFromString(address)
 	if err != nil {
 		return 0, err
@@ -537,7 +539,7 @@ func createPipe(address string, first bool) (syscall.Handle, error) {
 	return createNamedPipe(n,
 		mode,
 		pipe_type_byte,
-		pipe_unlimited_instances,
+		maxInstances,
 		512, 512, 0, nil)
 }
 

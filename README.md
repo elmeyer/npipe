@@ -28,7 +28,8 @@ The Dial function connects a client to a named pipe:
 The Listen function creates servers:
 
 
-	ln, err := npipe.Listen(`\\.\pipe\mypipename`)
+	maxInstances := 1 // maximum number of concurrently existing pipes with the same name
+	ln, err := npipe.Listen(`\\.\pipe\mypipename`, maxInstances)
 	if err != nil {
 		// handle error
 	}
@@ -261,7 +262,7 @@ use variables of type net.Listener instead of assuming named pipe.
 
 ### func Listen
 ``` go
-func Listen(address string) (*PipeListener, error)
+func Listen(address string, maxInstances uint32) (*PipeListener, error)
 ```
 Listen returns a new PipeListener that will listen on a pipe with the given
 address. The address must be of the form \\.\pipe\<name>
