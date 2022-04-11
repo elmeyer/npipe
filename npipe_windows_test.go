@@ -199,11 +199,13 @@ func TestCloseFileHandles(t *testing.T) {
 	if ln.acceptHandle != 0 {
 		t.Fatalf("Failed to close acceptHandle")
 	}
-	if ln.acceptOverlapped != nil {
-		if ln.acceptOverlapped.HEvent != 0 {
-			t.Fatalf("Failed to close acceptOverlapped handle")
-		}
-	}
+	// FIXME: Due to a race between HEvent being closed from within Accept() and Close(),
+	// Close() no longer closes the handle to avoid panics when Accept() attempts to do the same.
+	// if ln.acceptOverlapped != nil {
+	// 	if ln.acceptOverlapped.HEvent != 0 {
+	// 		t.Fatalf("Failed to close acceptOverlapped handle")
+	// 	}
+	// }
 }
 
 // TestCancelListen tests whether Accept() can be cancelled by closing the listener.
