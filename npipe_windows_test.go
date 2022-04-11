@@ -156,6 +156,7 @@ func TestListenCloseListen(t *testing.T) {
 
 // TestCloseFileHandles tests that all PipeListener handles are actualy closed after
 // calling Close()
+// FIXME: this test is racy.
 func TestCloseFileHandles(t *testing.T) {
 	address := `\\.\pipe\TestCloseFileHandles`
 	ln, err := Listen(address, pipe_unlimited_instances)
@@ -198,8 +199,10 @@ func TestCloseFileHandles(t *testing.T) {
 	if ln.acceptHandle != 0 {
 		t.Fatalf("Failed to close acceptHandle")
 	}
-	if ln.acceptOverlapped.HEvent != 0 {
-		t.Fatalf("Failed to close acceptOverlapped handle")
+	if ln.acceptOverlapped != nil {
+		if ln.acceptOverlapped.HEvent != 0 {
+			t.Fatalf("Failed to close acceptOverlapped handle")
+		}
 	}
 }
 

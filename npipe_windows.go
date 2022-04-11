@@ -375,12 +375,15 @@ func (l *PipeListener) Close() error {
 		if err := cancelIoEx(l.acceptHandle, l.acceptOverlapped); err != nil {
 			return err
 		}
-		err := syscall.CloseHandle(l.acceptOverlapped.HEvent)
-		if err != nil {
-			return err
+		// Avoid a race if the deferred CloseHandle from Accept is faster than we are.
+		if l.acceptOverlapped.HEvent != 0 {
+			err := syscall.CloseHandle(l.acceptOverlapped.HEvent)
+			if err != nil {
+				return err
+			}
+			l.acceptOverlapped.HEvent = 0
 		}
-		l.acceptOverlapped.HEvent = 0
-		err = syscall.CloseHandle(l.acceptHandle)
+		err := syscall.CloseHandle(l.acceptHandle)
 		if err != nil {
 			return err
 		}
